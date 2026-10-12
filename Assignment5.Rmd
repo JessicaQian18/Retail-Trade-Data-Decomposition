@@ -1,0 +1,70 @@
+---
+title: "Assignment5"
+author: "Jessica Qian"
+date: "2026-10-12"
+output: html_document
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+library(readxl)
+library(fpp2)
+library(forecast)
+
+retail <- read_excel("/Users/jessicaqian/Downloads/RetailTradeData.xlsx",sheet = "Monthly")
+
+names(retail)[2] <- "Retail_Sales"
+
+retail_ts <- ts(retail$Retail_Sales,
+                start = c(2016, 7),
+                frequency = 12)
+```
+
+```{r}
+stl_decomp <- stl(retail_ts, s.window = "periodic")
+plot(stl_decomp)
+```
+
+### Data: the original monthly retail sales series.
+### Seasonal: the repeating monthly pattern that occurs each year.
+### Trend: the long-term movement in retail sales over time.
+### Remainder: the irregular variation left after removing trend and seasonality.
+
+```{r}
+attributes(stl_decomp)
+```
+
+
+```{r}
+library(forecast)
+seasadj(stl_decomp)
+```
+```{r}
+plot(retail_ts,
+     main = "Retail Sales with Seasonal Adjustment",
+     xlab = "Year",
+     ylab = "Millions of Dollars")
+
+lines(seasadj(stl_decomp), col = "red")
+```
+```{r}
+f_stl <- forecast(stl_decomp, h = 12)
+f_stl
+plot(f_stl)
+```
+```{r}
+decomp_retail <- decompose(retail_ts)
+
+decomp_retail
+plot(decomp_retail)
+
+attributes(decomp_retail)
+seasadj(decomp_retail)
+```
+
+```{r}
+decomp_mult <- decompose(retail_ts, type = "multiplicative")
+plot(decomp_mult)
+```
+
+### The multiplicative decomposition appears more appropriate because the size of the seasonal fluctuations changes with the overall level of retail sales. As the trend increases, the seasonal variation also becomes larger. The multiplicative model represents the seasonal effect as a proportion of the series level, which better matches the behavior of this dataset.
+
